@@ -12,7 +12,7 @@ Built for the Meta AI Developer Hackathon.
   links). No scraping, no key, cached 1h in the proxy.
 - **Map:** search → central node → 1-hop link ring. Click a node to read it,
   double-click (or Expand) to grow that branch. Share any view with the URL —
-  the topic lives in the hash (`#Black_hole`).
+  the topic lives in the hash (`#/Black_hole`).
 - **AI (Meta Model API):** every AI feature goes through `META_API_BASE` /
   `META_MODEL` (default `muse-spark-1.3`):
   - `POST /api/ai/summarize` — Explain simply / 5 bullets / Deep dive

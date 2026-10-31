@@ -94,7 +94,18 @@ export function useWikiGraph() {
         });
       return [...prev, ...fresh];
     });
-    setEdges((prev) => [...prev, ...(linkData.links || []).slice(0, 8).map((t) => ({ from: title, to: t }))]);
+    setEdges((prev) => {
+      const seen = new Set(prev.map((e) => [e.from, e.to].sort().join('\u0000')));
+      const fresh = [];
+      for (const t of (linkData.links || []).slice(0, 8)) {
+        if (t === title) continue;
+        const key = [title, t].sort().join('\u0000');
+        if (seen.has(key)) continue;
+        seen.add(key);
+        fresh.push({ from: title, to: t });
+      }
+      return [...prev, ...fresh];
+    });
   }
 
   return { nodes, edges, loading, explore, expand, setNodes };
