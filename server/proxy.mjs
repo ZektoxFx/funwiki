@@ -98,7 +98,14 @@ async function metaChat(messages, maxTokens = 500) {
   const r = await fetch(`${base}/chat/completions`, {
     method: 'POST',
     headers: { Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ model, messages, max_tokens: maxTokens })
+    // Muse Spark is a reasoning model: reasoning + visible answer share one token
+    // budget, so keep headroom and use light reasoning for short, grounded tasks.
+    body: JSON.stringify({
+      model,
+      messages,
+      max_completion_tokens: Math.max(maxTokens, 4096),
+      reasoning_effort: process.env.META_REASONING_EFFORT || 'low'
+    })
   });
   if (!r.ok) throw new Error(`Meta API ${r.status}`);
   const data = await r.json();
