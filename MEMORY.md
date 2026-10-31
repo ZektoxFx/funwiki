@@ -1,4 +1,4 @@
-# FunWiki — Project Memory
+﻿# FunWiki — Project Memory
 
 Durable notes for future sessions. Full session history lives in
 `.agents/plans/2026-10-29-visual-wikipedia.md` (canonical record).
@@ -15,5 +15,11 @@ Durable notes for future sessions. Full session history lives in
   fallbacks when no key.
 - **Standing rules:** push to GitHub after every change; verify with real runs
   (build, handler checks, live endpoints), not assumptions.
-- **Pending:** set `META_API_KEY` in Vercel env for live AI; record demo video
-  (script in `DEMO_SCRIPT.md`).
+- **Live AI (2026-10-31):** `META_API_KEY` set in Vercel (Production + Preview, Secret).
+  Verified funwiki.vercel.app returns `source: meta:muse-spark-1.3` for summarize,
+  path and quiz. `/api/health` shows `meta.keyConfigured`.
+- **Muse gotcha:** reasoning tokens share `max_completion_tokens` - small budgets give
+  empty replies (`finish_reason: length`). metaChat uses >=4096 + `reasoning_effort: low`.
+- **Alias gotcha:** `funwiki.vercel.app` is a static alias and does NOT follow new
+  deploys. After deploying run `npx vercel alias set <deployment-url> funwiki.vercel.app`.
+- **Pending:** record demo video (script in `DEMO_SCRIPT.md`).
