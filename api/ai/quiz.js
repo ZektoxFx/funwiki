@@ -1,4 +1,4 @@
-import { getCache, setCache, metaChat, send } from '../_lib.js';
+﻿import { getCache, setCache, metaChat, fallbackNote, send } from '../_lib.js';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') return send(res, 405, { error: 'POST only' });
@@ -8,15 +8,16 @@ export default async function handler(req, res) {
     const cached = getCache(cacheKey);
     if (cached) return send(res, 200, { ...cached, cached: true });
 
-    const { text, model } = await metaChat([
+    const ai = await metaChat([
       { role: 'system', content: 'Reply with a JSON array only, no other text. Each item: {"q": string, "options": [4 strings], "answer": 0-3}.' },
       { role: 'user', content: `Article: ${title}\n\n${(extract || '').slice(0, 3000)}\n\nWrite 3 multiple-choice quiz questions using ONLY this content. JSON array only.` }
     ], 600);
+    const { text, model } = ai;
     if (!text) {
       return send(res, 200, {
         title, questions: [], source: 'wikipedia-fallback',
-        cached: false, needsKey: true,
-        note: 'Quiz needs META_API_KEY (Muse Spark).'
+        cached: false, needsKey: ai.reason === 'no-key', reason: ai.reason,
+        note: fallbackNote(ai, 'quizzes')
       });
     }
     try {

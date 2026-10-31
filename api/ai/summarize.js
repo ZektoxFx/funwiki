@@ -1,4 +1,4 @@
-import { getCache, setCache, metaChat, send } from '../_lib.js';
+﻿import { getCache, setCache, metaChat, fallbackNote, send } from '../_lib.js';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') return send(res, 405, { error: 'POST only' });
@@ -12,19 +12,21 @@ export default async function handler(req, res) {
       level === 'bullets' ? 'as 5 short bullets'
       : level === 'deep' ? 'as a 3-paragraph deep dive'
       : 'like I am 5 years old, in 3 sentences';
-    const { text, model } = await metaChat([
+    const ai = await metaChat([
       { role: 'system', content: 'Summarize only the provided Wikipedia content. Do not add facts beyond it.' },
       { role: 'user', content: `Article: ${title}\n\n${(extract || '').slice(0, 4000)}\n\nSummarize ${style}.` }
     ]);
+    const { text, model } = ai;
     if (!text) {
-      const out = {
+      // Fallbacks are not cached so Muse is retried on the next request.
+      return send(res, 200, {
         title, level,
         text: (extract || '').split('. ').slice(0, 3).join('. ') + '.',
         source: 'wikipedia-fallback',
-        note: 'Set META_API_KEY to enable Muse Spark summaries.'
-      };
-      setCache(cacheKey, out);
-      return send(res, 200, { ...out, cached: false });
+        reason: ai.reason,
+        note: fallbackNote(ai, 'summaries'),
+        cached: false
+      });
     }
     const out = { title, level, text, source: `meta:${model}` };
     setCache(cacheKey, out);

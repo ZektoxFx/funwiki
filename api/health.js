@@ -1,5 +1,7 @@
-import { send } from './_lib.js';
+import { send, metaEnv } from './_lib.js';
 
 export default async function handler(req, res) {
-  send(res, 200, { ok: true });
+  const { key, base, model } = metaEnv();
+  // Reports only whether a key is configured - never its value.
+  send(res, 200, { ok: true, meta: { keyConfigured: Boolean(key), base, model } });
 }

@@ -57,17 +57,33 @@ export function metaEnv() {
   };
 }
 
+// Returns { text, model, reason }. reason explains an empty text:
+// 'no-key' (META_API_KEY missing) or 'empty-response' (Muse replied with no content,
+// e.g. all tokens spent on reasoning; finishReason tells which).
 export async function metaChat(messages, maxTokens = 500) {
   const { key, base, model } = metaEnv();
-  if (!key) return { text: null, model };
+  if (!key) return { text: null, model, reason: 'no-key' };
   const r = await fetch(`${base}/chat/completions`, {
     method: 'POST',
     headers: { Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' },
     body: JSON.stringify({ model, messages, max_tokens: maxTokens })
   });
-  if (!r.ok) throw new Error(`Meta API ${r.status}`);
+  if (!r.ok) {
+    const detail = (await r.text().catch(() => '')).slice(0, 200);
+    throw new Error(`Meta API ${r.status}${detail ? `: ${detail}` : ''}`);
+  }
   const data = await r.json();
-  return { text: data.choices?.[0]?.message?.content || '', model };
+  const choice = data.choices?.[0] || {};
+  const text = choice.message?.content || '';
+  return text
+    ? { text, model }
+    : { text: null, model, reason: 'empty-response', finishReason: choice.finish_reason || null };
+}
+
+// Human-readable note for a fallback response.
+export function fallbackNote(ai, what) {
+  if (ai.reason === 'no-key') return `Set META_API_KEY to enable Muse Spark ${what}.`;
+  return `Muse Spark returned an empty reply (finish_reason: ${ai.finishReason || 'unknown'}); showing fallback.`;
 }
 
 export function send(res, code, obj) {
