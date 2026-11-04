@@ -93,6 +93,18 @@ export function fallbackNote(ai, what) {
   return `Muse Spark returned an empty reply (finish_reason: ${ai.finishReason || 'unknown'}); showing fallback.`;
 }
 
+// Pull the first JSON array out of a Muse reply and keep only items that pass `valid`.
+// Returns [] when nothing usable is found.
+export function parseJsonArray(text, valid) {
+  try {
+    const m = (text || '').match(/\[[\s\S]*\]/);
+    const parsed = JSON.parse(m ? m[0] : text);
+    return Array.isArray(parsed) ? parsed.filter(valid) : [];
+  } catch {
+    return [];
+  }
+}
+
 export function send(res, code, obj) {
   res.status(code).json(obj);
 }

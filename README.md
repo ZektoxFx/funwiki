@@ -46,7 +46,8 @@ The same app runs serverless — no code changes needed on the frontend:
 3. Deploy. The Express proxy is **not** used on Vercel — [api/](api) holds the
    same seven endpoints as serverless functions (`api/health.js`,
    `api/wiki/*`, `api/ai/*`), and the client already calls same-origin
-   `/api/...` paths. `server/proxy.mjs` stays for local development only.
+   `/api/...` paths. `server/proxy.mjs` is for local development only and
+   mounts those same `api/` handlers, so local and Vercel run identical code.
 
 Note: the 1-hour in-memory cache is per function instance on Vercel, so cold
 starts refetch — fine for the demo, but AI calls cost more credits than locally.
@@ -54,14 +55,17 @@ starts refetch — fine for the demo, but AI calls cost more credits than locall
 ## Architecture
 
 ```text
-browser (React + Vite, custom SVG radial graph)
+browser (React + Vite, dark full-screen SVG map: pan, zoom, keyboard)
    │  /api/*
    ▼
-server/proxy.mjs (Express: Wikipedia proxy + 1h cache + Meta AI layer)
-   ├── en.wikipedia.org (Action API + REST summaries)
-   └── Meta Model API (OpenAI-compatible /chat/completions)
+api/*.js handlers  ← one implementation, two hosts:
+   │                 Vercel serverless (prod) · server/proxy.mjs Express (local)
+   ├── en.wikipedia.org (Action API + REST summaries, 1h cache)
+   └── Meta Model API, Muse Spark (OpenAI-compatible /chat/completions)
 ```
 
-Files: [src/App.jsx](src/App.jsx) (tabs, path stepper, quiz) ·
-[src/Graph.jsx](src/Graph.jsx) (SVG map) · [src/wiki.js](src/wiki.js) (API client,
-graph state, share-URL helpers) · [server/proxy.mjs](server/proxy.mjs).
+Files: [src/App.jsx](src/App.jsx) (shell, reading panel, path stepper, quiz) ·
+[src/Graph.jsx](src/Graph.jsx) (SVG map with pan/zoom) · [src/wiki.js](src/wiki.js)
+(API client, graph state, share-URL helpers) · [api/_lib.js](api/_lib.js) (cache,
+Wikipedia + Meta clients, Muse JSON validation) · [server/proxy.mjs](server/proxy.mjs)
+(local host for the `api/` handlers).
