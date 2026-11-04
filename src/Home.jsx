@@ -212,7 +212,7 @@ export default function Home({ onOpen, onSearch, muse, error }) {
         </header>
 
         <section className="lede" aria-labelledby="title">
-          <div className="side">
+          <div className="lede-side">
             <p className="standfirst">Type a topic and its article opens as a map you can walk, with Meta’s Muse Spark as your guide.</p>
             <form className="find" role="search" onSubmit={(e) => { e.preventDefault(); if (text.trim()) onSearch(text.trim()); }}>
               <input value={text} onChange={(e) => setText(e.target.value)} placeholder="Octopus, Jazz, Mars…" aria-label="Search Wikipedia" />

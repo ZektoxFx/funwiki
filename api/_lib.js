@@ -42,6 +42,7 @@ export async function wikiSummary(title) {
   const out = {
     title: data.title,
     extract: data.extract,
+    description: data.description || null,
     thumbnail: data.thumbnail?.source || null,
     url: data.content_urls?.desktop?.page || null
   };
