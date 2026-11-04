@@ -9,3 +9,6 @@ dist/
 .vercel/
 
 .vercel
+
+# taste-skill working files (inspector screenshots, direction sheet)
+.taste-skill/

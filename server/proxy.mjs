@@ -5,6 +5,7 @@ import express from 'express';
 import cors from 'cors';
 import health from '../api/health.js';
 import search from '../api/wiki/search.js';
+import today from '../api/wiki/today.js';
 import summary from '../api/wiki/summary/[title].js';
 import links from '../api/wiki/links/[title].js';
 import summarize from '../api/ai/summarize.js';
@@ -23,6 +24,7 @@ const withParams = (handler) => (req, res) => {
 
 app.get('/api/health', health);
 app.get('/api/wiki/search', search);
+app.get('/api/wiki/today', today);
 app.get('/api/wiki/summary/:title', withParams(summary));
 app.get('/api/wiki/links/:title', withParams(links));
 app.all('/api/ai/summarize', summarize);
