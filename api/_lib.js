@@ -93,6 +93,41 @@ export function fallbackNote(ai, what) {
   return `Muse Spark returned an empty reply (finish_reason: ${ai.finishReason || 'unknown'}); showing fallback.`;
 }
 
+// Pull the first JSON array out of a Muse reply and keep only items that pass `valid`.
+// Returns [] when nothing usable is found.
+export function parseJsonArray(text, valid) {
+  try {
+    const m = (text || '').match(/\[[\s\S]*\]/);
+    const parsed = JSON.parse(m ? m[0] : text);
+    return Array.isArray(parsed) ? parsed.filter(valid) : [];
+  } catch {
+    return [];
+  }
+}
+
+const decodeEntities = (s) => s.replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&amp;/g, '&');
+
+// Article links from the lead paragraphs, in reading order. The API's own link
+// list is alphabetical, which made every map show only "A…" topics.
+export function leadLinks(html) {
+  const prose = ((html || '').match(/<p[ >][\s\S]*?<\/p>/g) || []).join('');
+  const out = new Set();
+  for (const m of prose.matchAll(/<a href="\/wiki\/([^"#?]+)"[^>]*?title="([^"]+)"/g)) {
+    if (!m[1].includes(':')) out.add(decodeEntities(m[2]));
+  }
+  return [...out];
+}
+
+// Muse tends to put the right answer first; shuffle so position gives nothing away.
+export function shuffleOptions(q) {
+  const idx = q.options.map((_, i) => i);
+  for (let i = idx.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [idx[i], idx[j]] = [idx[j], idx[i]];
+  }
+  return { ...q, options: idx.map((i) => q.options[i]), answer: idx.indexOf(q.answer) };
+}
+
 export function send(res, code, obj) {
   res.status(code).json(obj);
 }
