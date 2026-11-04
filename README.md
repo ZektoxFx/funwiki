@@ -6,6 +6,14 @@ summaries, guided learning paths, and quizzes.
 
 Built for the Meta AI Developer Hackathon.
 
+## Design
+
+The UI follows the dark variant of [design-md/elevenlabs/DESIGN.md](design-md/elevenlabs/DESIGN.md):
+ink canvas, inverted pill buttons, EB Garamond Light display (the documented
+Waldenburg substitute), Inter body, and pastel orb colours as the only colour.
+[design-md/](design-md) holds the full [awesome-design-md](https://github.com/VoltAgent/awesome-design-md)
+collection (84 brand DESIGN.md files, MIT) for future restyles.
+
 ## How it works
 
 - **Data:** Wikipedia + Wikidata public APIs (search, article summaries, article

@@ -60,13 +60,14 @@ function Orb() {
     <svg className="orb" viewBox="0 0 200 200" aria-hidden="true">
       <defs>
         <radialGradient id="home-core" cx="35%" cy="35%">
-          <stop offset="0%" stopColor="#c4b5ff" />
-          <stop offset="60%" stopColor="#7c6cff" />
-          <stop offset="100%" stopColor="#0866ff" />
+          <stop offset="0%" stopColor="#a7e5d3" />
+          <stop offset="50%" stopColor="#c8b8e0" />
+          <stop offset="100%" stopColor="#a8c8e8" />
         </radialGradient>
         <radialGradient id="home-halo">
-          <stop offset="30%" stopColor="#7c6cff" stopOpacity="0.45" />
-          <stop offset="100%" stopColor="#7c6cff" stopOpacity="0" />
+          <stop offset="25%" stopColor="#f4c5a8" stopOpacity="0.28" />
+          <stop offset="60%" stopColor="#c8b8e0" stopOpacity="0.18" />
+          <stop offset="100%" stopColor="#c8b8e0" stopOpacity="0" />
         </radialGradient>
       </defs>
       <circle cx="100" cy="100" r="96" fill="url(#home-halo)" />

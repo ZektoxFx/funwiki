@@ -323,13 +323,14 @@ export default function Graph({ nodes, edges, selected, onSelect, onExpand }) {
       >
         <defs>
           <radialGradient id="g-center" cx="35%" cy="35%">
-            <stop offset="0%" stopColor="#c4b5ff" />
-            <stop offset="100%" stopColor="#5b5bf6" />
+            <stop offset="0%" stopColor="#a7e5d3" />
+            <stop offset="55%" stopColor="#c8b8e0" />
+            <stop offset="100%" stopColor="#a8c8e8" />
           </radialGradient>
           {/* Static gradient halo instead of an SVG blur filter: no per-frame re-rasterising. */}
           <radialGradient id="g-halo">
-            <stop offset="35%" stopColor="#7c6cff" stopOpacity="0.55" />
-            <stop offset="100%" stopColor="#7c6cff" stopOpacity="0" />
+            <stop offset="35%" stopColor="#c8b8e0" stopOpacity="0.4" />
+            <stop offset="100%" stopColor="#c8b8e0" stopOpacity="0" />
           </radialGradient>
         </defs>
         {edges.map((e) => {
