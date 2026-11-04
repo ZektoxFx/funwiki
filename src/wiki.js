@@ -90,7 +90,7 @@ export function useWikiGraph() {
         .slice(0, 8)
         .map((t, i, arr) => {
           const angle = (2 * Math.PI * i) / Math.max(arr.length, 1);
-          return { id: t, x: parent.x + 130 * Math.cos(angle), y: parent.y + 110 * Math.sin(angle), px: parent.x, kind: 'link' };
+          return { id: t, x: parent.x + 130 * Math.cos(angle), y: parent.y + 110 * Math.sin(angle), kind: 'link' };
         });
       return [...prev, ...fresh];
     });

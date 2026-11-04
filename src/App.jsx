@@ -46,6 +46,7 @@ export default function App() {
   const { nodes, edges, loading, explore, expand } = useWikiGraph();
   const linkTitles = React.useMemo(() => nodes.filter((n) => n.kind === 'link').map((n) => n.id), [nodes]);
   const centerId = nodes.find((n) => n.kind === 'center')?.id;
+  const shown = React.useRef(null); // topic we put in the URL, so our own hash writes are ignored
 
   async function doSearch(e) {
     e?.preventDefault();
@@ -64,6 +65,7 @@ export default function App() {
   async function openArticle(title) {
     setError(null);
     setSelected(title);
+    shown.current = title;
     topicToUrl(title);
     resetAi();
     try {
@@ -84,6 +86,7 @@ export default function App() {
   async function onNodeClick(title) {
     setError(null);
     setSelected(title);
+    shown.current = title;
     topicToUrl(title);
     resetAi();
     try {
@@ -150,6 +153,13 @@ export default function App() {
     openArticle(start);
     searchWiki(start).then(setResults).catch(() => {});
     fetch('/api/health').then((r) => r.json()).then((h) => setMuse(h.meta)).catch(() => {});
+    // Browser back/forward: reopen whatever topic the URL now names.
+    const onHash = () => {
+      const t = topicFromUrl();
+      if (t && t !== shown.current) { setQ(t); openArticle(t); }
+    };
+    window.addEventListener('hashchange', onHash);
+    return () => window.removeEventListener('hashchange', onHash);
     // eslint-disable-next-line
   }, []);
 
@@ -191,7 +201,7 @@ export default function App() {
           )}
           {loading && <div className="status overlay"><span className="spinner" aria-hidden="true" />Building map…</div>}
           <div className="hint">
-            Click to read · double-click or <kbd>E</kbd> to grow · drag to pan · scroll to zoom
+            Click to read · double-click or <kbd>E</kbd> to grow · drag topics to move them · drag space to pan · scroll to zoom
             {selected && <button className="chip" onClick={() => expand(selected)}>Expand “{selected}”</button>}
           </div>
         </section>
@@ -221,7 +231,7 @@ export default function App() {
                   <div className="ai-box">
                     <div className="row">
                       {LEVELS.map((l) => (
-                        <button key={l.id} onClick={() => setLevel(l.id)} className={'chip' + (level === l.id ? ' active' : '')}>{l.label}</button>
+                        <button key={l.id} onClick={() => { setLevel(l.id); setAi(null); }} className={'chip' + (level === l.id ? ' active' : '')}>{l.label}</button>
                       ))}
                       <button onClick={runAi} disabled={aiLoading} className="primary">{aiLoading ? 'Thinking…' : 'Ask Muse'}</button>
                     </div>

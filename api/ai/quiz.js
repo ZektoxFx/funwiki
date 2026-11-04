@@ -1,4 +1,4 @@
-import { getCache, setCache, metaChat, fallbackNote, parseJsonArray, send } from '../_lib.js';
+import { getCache, setCache, metaChat, fallbackNote, parseJsonArray, shuffleOptions, send } from '../_lib.js';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') return send(res, 405, { error: 'POST only' });
@@ -23,7 +23,7 @@ export default async function handler(req, res) {
     const questions = parseJsonArray(text, (x) =>
       typeof x?.q === 'string' && Array.isArray(x.options) && x.options.length >= 2 &&
       Number.isInteger(x.answer) && x.answer >= 0 && x.answer < x.options.length
-    ).slice(0, 3);
+    ).slice(0, 3).map(shuffleOptions);
     if (!questions.length) return send(res, 502, { error: 'Muse Spark returned an unusable quiz; try again.' });
     const out = { title, questions, source: `meta:${model}` };
     setCache(cacheKey, out);

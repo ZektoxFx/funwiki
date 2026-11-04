@@ -70,17 +70,25 @@ kbd { border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 4p
 .graph-wrap, .graph { position: absolute; inset: 0; width: 100%; height: 100%; }
 .graph { touch-action: none; cursor: grab; user-select: none; }
 .graph:active { cursor: grabbing; }
-.edge { stroke: rgba(160, 165, 220, 0.18); stroke-width: 1; transition: stroke 0.15s; }
-.edge.lit { stroke: rgba(124, 108, 255, 0.85); stroke-width: 1.6; }
+.edge { stroke: rgba(160, 165, 220, 0.2); stroke-width: 1; }
+.edge.d2 { stroke: rgba(54, 197, 240, 0.18); }
+.edge.d3 { stroke: rgba(255, 128, 191, 0.16); }
+.edge.lit { stroke: rgba(196, 181, 255, 0.9); stroke-width: 1.6; stroke-dasharray: 5 5; animation: flow 0.9s linear infinite; }
+@keyframes flow { to { stroke-dashoffset: -10; } }
 .node { cursor: pointer; outline: none; }
-.node circle { fill: #1b1e33; stroke: rgba(180, 185, 255, 0.55); stroke-width: 1.4; transition: fill 0.15s, stroke 0.15s; }
-.node text { font-size: 11px; fill: var(--muted); pointer-events: none; paint-order: stroke; stroke: var(--bg); stroke-width: 3px; stroke-linejoin: round; transition: fill 0.15s; }
+.node.held { cursor: grabbing; }
+.graph .node circle.hit { fill: transparent; stroke: none; } /* bigger grab area than the visible dot */
+.node circle { fill: #1b1e33; stroke: rgba(180, 185, 255, 0.6); stroke-width: 1.4; transition: fill 0.15s, stroke 0.15s; }
+.node.d2 circle { fill: #10283a; stroke: rgba(54, 197, 240, 0.7); }
+.node.d3 circle { fill: #2c1427; stroke: rgba(255, 128, 191, 0.7); }
+.node text { font-size: 11px; fill: var(--muted); pointer-events: none; paint-order: stroke; stroke: var(--bg); stroke-width: 3px; stroke-linejoin: round; transition: fill 0.15s, opacity 0.15s; }
+.node.d2 text, .node.d3 text { font-size: 10px; opacity: 0.7; }
+.node.near text { fill: var(--text); opacity: 1; }
 .node.hover circle, .node:focus-visible circle { fill: var(--accent-2); stroke: #fff; }
-.node.hover text, .node:focus-visible text, .node.selected text { fill: var(--text); }
 .node.selected circle { fill: var(--accent); stroke: #fff; }
 .node.center circle { fill: url(#g-center); stroke: none; }
-.node.center text { font-size: 14px; font-weight: 700; fill: var(--text); }
-.node .ring { fill: none; stroke: var(--accent); stroke-width: 1.2; opacity: 0.7; transform-box: fill-box; transform-origin: center; animation: pulse 2s ease-out infinite; }
+.node.center text { font-size: 14px; font-weight: 700; fill: var(--text); opacity: 1; }
+.graph .node circle.ring { fill: none; stroke: var(--accent); stroke-width: 1.2; opacity: 0.7; transform-box: fill-box; transform-origin: center; animation: pulse 2s ease-out infinite; }
 @keyframes pulse { from { transform: scale(0.8); opacity: 0.8; } to { transform: scale(1.5); opacity: 0; } }
 .map-tools { position: absolute; top: 12px; right: 12px; display: flex; flex-direction: column; gap: 6px; }
 .hint { position: absolute; left: 12px; right: 12px; bottom: 12px; display: flex; flex-wrap: wrap; align-items: center; gap: 10px; font-size: 12px; color: var(--muted); pointer-events: none; }

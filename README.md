@@ -10,8 +10,11 @@ Built for the Meta AI Developer Hackathon.
 
 - **Data:** Wikipedia + Wikidata public APIs (search, article summaries, article
   links). No scraping, no key, cached 1h in the proxy.
-- **Map:** search → central node → 1-hop link ring. Click a node to read it,
-  double-click (or Expand) to grow that branch. Share any view with the URL —
+- **Map:** search → central node → the topics linked in the article's opening
+  paragraphs, in reading order. It's a live force-directed mind map: nodes repel,
+  links act as springs, the map drifts gently, and you can drag topics around.
+  Click a node to read it, double-click (or `E`) to grow that branch out of it;
+  node size follows its connections and colour its depth. Share any view with the URL —
   the topic lives in the hash (`#/Black_hole`).
 - **AI (Meta Model API):** every AI feature goes through `META_API_BASE` /
   `META_MODEL` (default `muse-spark-1.3`):
@@ -31,7 +34,7 @@ node server/proxy.mjs            # terminal 1 — API on http://localhost:3001
 npx vite                         # terminal 2 — app on http://localhost:5173
 ```
 
-Open http://localhost:5173 in a browser. For real AI, copy `.env.example`
+Open http://localhost:5173 in a browser. `npm test` runs the helper tests. For real AI, copy `.env.example`
 to `.env` and set `META_API_KEY` before starting the proxy.
 
 ## Deploy on Vercel
@@ -55,7 +58,7 @@ starts refetch — fine for the demo, but AI calls cost more credits than locall
 ## Architecture
 
 ```text
-browser (React + Vite, dark full-screen SVG map: pan, zoom, keyboard)
+browser (React + Vite, dark SVG force-directed mind map: drag, pan, zoom, keyboard)
    │  /api/*
    ▼
 api/*.js handlers  ← one implementation, two hosts:
