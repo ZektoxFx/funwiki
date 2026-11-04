@@ -1,5 +1,6 @@
 import React from 'react';
 import Graph from './Graph.jsx';
+import Home from './Home.jsx';
 import { searchWiki, fetchSummary, fetchLinks, aiSummarize, aiPath, aiQuiz, topicFromUrl, topicToUrl, useWikiGraph } from './wiki.js';
 
 const LEVELS = [
@@ -43,27 +44,30 @@ export default function App() {
   const [error, setError] = React.useState(null);
   const [copied, setCopied] = React.useState(false);
   const [muse, setMuse] = React.useState(null);
+  const [home, setHome] = React.useState(() => !topicFromUrl()); // no topic in the URL = front page
   const { nodes, edges, loading, explore, expand } = useWikiGraph();
   const linkTitles = React.useMemo(() => nodes.filter((n) => n.kind === 'link').map((n) => n.id), [nodes]);
   const centerId = nodes.find((n) => n.kind === 'center')?.id;
   const shown = React.useRef(null); // topic we put in the URL, so our own hash writes are ignored
 
-  async function doSearch(e) {
+  async function doSearch(e, text = q) {
     e?.preventDefault();
-    if (!q.trim()) return;
+    if (!text.trim()) return;
     setError(null);
     try {
-      const r = await searchWiki(q.trim());
+      const r = await searchWiki(text.trim());
       setResults(r);
       if (r[0]) openArticle(r[0].title);
-      else setError(`No Wikipedia articles found for “${q.trim()}”. Try another spelling.`);
+      else setError(`No Wikipedia articles found for “${text.trim()}”. Try another spelling.`);
     } catch {
       setError('Search failed — is the API running? Start it with `npm run dev`.');
     }
   }
 
-  async function openArticle(title) {
+  async function openArticle(title, startTab) {
     setError(null);
+    setHome(false);
+    if (startTab) setTab(startTab);
     setSelected(title);
     shown.current = title;
     topicToUrl(title);
@@ -148,28 +152,47 @@ export default function App() {
   const answered = Object.keys(answers).length;
 
   React.useEffect(() => {
-    const start = topicFromUrl() || 'Black Holes';
-    setQ(start);
-    openArticle(start);
-    searchWiki(start).then(setResults).catch(() => {});
+    const start = topicFromUrl();
+    if (start) {
+      setQ(start);
+      openArticle(start);
+      searchWiki(start).then(setResults).catch(() => {});
+    }
     fetch('/api/health').then((r) => r.json()).then((h) => setMuse(h.meta)).catch(() => {});
     // Browser back/forward: reopen whatever topic the URL now names.
     const onHash = () => {
       const t = topicFromUrl();
-      if (t && t !== shown.current) { setQ(t); openArticle(t); }
+      if (!t) { shown.current = null; setError(null); setHome(true); return; }
+      if (t !== shown.current) { setQ(t); openArticle(t); }
     };
     window.addEventListener('hashchange', onHash);
     return () => window.removeEventListener('hashchange', onHash);
     // eslint-disable-next-line
   }, []);
 
+  if (home) {
+    return (
+      <Home
+        muse={muse}
+        error={error}
+        // Opening from the front page starts on Summary unless a feature tile asks for its own tab.
+        onSearch={(text) => { setQ(text); setTab('summary'); doSearch(null, text); }}
+        onOpen={(title, startTab = 'summary') => {
+          setQ(title);
+          openArticle(title, startTab);
+          searchWiki(title).then(setResults).catch(() => {});
+        }}
+      />
+    );
+  }
+
   return (
     <div className="app">
       <header className="topbar">
-        <div className="brand">
+        <a className="brand" href="#/" aria-label="FunWiki home">
           <span className="logo" aria-hidden="true" />
           FunWiki
-        </div>
+        </a>
         <form onSubmit={doSearch} className="search" role="search">
           <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search any topic…" aria-label="Search Wikipedia" />
           <button type="submit" className="primary">Explore</button>

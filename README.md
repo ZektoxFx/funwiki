@@ -10,6 +10,9 @@ Built for the Meta AI Developer Hackathon.
 
 - **Data:** Wikipedia + Wikidata public APIs (search, article summaries, article
   links). No scraping, no key, cached 1h in the proxy.
+- **Home:** a front page in the spirit of wikipedia.org: ten featured topics
+  orbit the FunWiki orb, plus search, "Surprise me" and feature tiles that open a
+  demo topic on the matching tab. The FunWiki brand (top left) always returns here.
 - **Map:** search → central node → the topics linked in the article's opening
   paragraphs, in reading order. It's a live force-directed mind map: nodes repel,
   links act as springs, the map drifts gently, and you can drag topics around.
