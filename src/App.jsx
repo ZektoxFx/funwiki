@@ -190,7 +190,7 @@ export default function App() {
         </nav>
       )}
 
-      {error && <div className="error" role="alert">{error}<button className="ghost" onClick={() => setError(null)} aria-label="Dismiss">×</button></div>}
+      {error && <div className="error enter" role="alert">{error}<button className="ghost" onClick={() => setError(null)} aria-label="Dismiss">×</button></div>}
 
       <main className="layout">
         <section className="map" aria-busy={loading}>
@@ -235,7 +235,7 @@ export default function App() {
                       ))}
                       <button onClick={runAi} disabled={aiLoading} className="primary">{aiLoading ? 'Thinking…' : 'Ask Muse'}</button>
                     </div>
-                    {ai && <p className="ai-text">{ai.text}</p>}
+                    {ai && <p className="ai-text enter">{ai.text}</p>}
                     <Source r={ai} />
                   </div>
                 )}
@@ -245,9 +245,9 @@ export default function App() {
                     <button onClick={runPath} disabled={pathLoading} className="primary">{pathLoading ? 'Planning…' : path ? 'Rebuild path' : 'Build my learning path'}</button>
                     {path && (
                       <ol className="trail">
-                        <li><strong>{path.title}</strong><small>Start here</small></li>
+                        <li className="enter"><strong>{path.title}</strong><small>Start here</small></li>
                         {path.steps.map((s, i) => (
-                          <li key={i}>
+                          <li key={i} className="enter" style={{ '--i': i + 1 }}>
                             <button className="linklike" onClick={() => openArticle(s.title)}>{s.title}</button>
                             <small>{s.why}</small>
                           </li>
@@ -261,9 +261,9 @@ export default function App() {
                 {tab === 'quiz' && (
                   <div className="ai-box">
                     <button onClick={runQuiz} disabled={quizLoading} className="primary">{quizLoading ? 'Writing…' : quiz ? 'New quiz' : 'Test me!'}</button>
-                    {quiz?.needsKey && <p className="ai-text">{quiz.note}</p>}
+                    {quiz?.needsKey && <p className="ai-text enter">{quiz.note}</p>}
                     {quiz?.questions?.map((qq, i) => (
-                      <fieldset key={i} className="q">
+                      <fieldset key={i} className="q enter" style={{ '--i': i }}>
                         <legend><strong>Q{i + 1}.</strong> {qq.q}</legend>
                         {qq.options.map((opt, j) => {
                           const done = answers[i] !== undefined;

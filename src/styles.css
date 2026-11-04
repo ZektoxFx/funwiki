@@ -12,6 +12,7 @@
   --good: #3ddc97;
   --bad: #ff6b81;
   --radius: 14px;
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
   font-family: Inter, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
 }
 * { box-sizing: border-box; }
@@ -44,13 +45,15 @@ kbd { border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 4p
 .muse.on .dot { background: var(--good); box-shadow: 0 0 8px var(--good); }
 
 /* Buttons */
-.primary { padding: 8px 16px; border: 0; border-radius: 999px; background: linear-gradient(135deg, var(--accent), var(--meta)); color: #fff; font-weight: 600; }
+.primary { padding: 8px 16px; border: 0; border-radius: 999px; background: linear-gradient(135deg, var(--accent), var(--meta)); color: #fff; font-weight: 600; transition: transform 160ms var(--ease-out), filter 150ms ease; }
 .primary:hover:not(:disabled) { filter: brightness(1.12); }
-.chip { display: inline-flex; align-items: center; padding: 6px 12px; border: 1px solid var(--line); border-radius: 999px; background: var(--surface-2); color: var(--text); font-size: 13px; text-decoration: none; white-space: nowrap; }
+.chip { display: inline-flex; align-items: center; padding: 6px 12px; border: 1px solid var(--line); border-radius: 999px; background: var(--surface-2); color: var(--text); font-size: 13px; text-decoration: none; white-space: nowrap; transition: transform 160ms var(--ease-out), border-color 150ms ease, background-color 150ms ease; }
 .chip:hover { border-color: rgba(255, 255, 255, 0.25); }
 .chip.active { background: rgba(124, 108, 255, 0.22); border-color: var(--accent); }
 .ghost { border: 0; background: none; font-size: 18px; line-height: 1; padding: 0 4px; }
-.icon { width: 34px; height: 34px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); font-size: 17px; backdrop-filter: blur(10px); }
+.icon { width: 34px; height: 34px; border: 1px solid var(--line); border-radius: 10px; background: #151729; font-size: 17px; transition: transform 160ms var(--ease-out), border-color 150ms ease; } /* solid: a blur here would re-run every frame over the moving map */
+.icon:hover { border-color: rgba(255, 255, 255, 0.25); }
+.primary:active:not(:disabled), .chip:active, .icon:active, .opt:active:not(:disabled), .tab:active { transform: scale(0.97); }
 .linklike { border: 0; background: none; padding: 0; color: var(--accent-2); font-weight: 600; text-align: left; }
 .linklike:hover { text-decoration: underline; }
 
@@ -59,8 +62,9 @@ kbd { border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 4p
 
 /* Layout */
 .layout { flex: 1; min-height: 0; display: grid; grid-template-columns: 1fr 400px; gap: 14px; }
-.map, .panel { position: relative; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); backdrop-filter: blur(14px); overflow: hidden; }
-.panel { overflow-y: auto; }
+.map, .panel { position: relative; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); overflow: hidden; }
+/* No backdrop blur on .map: it only sits over a smooth gradient (invisible) yet would re-run every animation frame. */
+.panel { overflow-y: auto; backdrop-filter: blur(14px); }
 .status { padding: 40px; text-align: center; color: var(--muted); }
 .status.overlay { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; gap: 10px; background: rgba(7, 8, 15, 0.45); }
 .spinner { width: 16px; height: 16px; border: 2px solid var(--line); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; }
@@ -88,8 +92,13 @@ kbd { border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 4p
 .node.selected circle { fill: var(--accent); stroke: #fff; }
 .node.center circle { fill: url(#g-center); stroke: none; }
 .node.center text { font-size: 14px; font-weight: 700; fill: var(--text); opacity: 1; }
-.graph .node circle.ring { fill: none; stroke: var(--accent); stroke-width: 1.2; opacity: 0.7; transform-box: fill-box; transform-origin: center; animation: pulse 2s ease-out infinite; }
-@keyframes pulse { from { transform: scale(0.8); opacity: 0.8; } to { transform: scale(1.5); opacity: 0; } }
+.node-body { transform-origin: 0 0; animation: node-in 200ms var(--ease-out) backwards; } /* origin 0 0 = node centre */
+@keyframes node-in { from { opacity: 0; transform: scale(0.85); } }
+.graph .node circle.halo { fill: url(#g-halo); stroke: none; pointer-events: none; transition: opacity 200ms var(--ease-out); }
+@starting-style { .graph .node circle.halo { opacity: 0; } }
+/* Pulse twice to flag a new selection, then rest; the halo and fill keep marking it. */
+.graph .node circle.ring { fill: none; stroke: var(--accent); stroke-width: 1.2; opacity: 0; transform-box: fill-box; transform-origin: center; animation: pulse 1.6s var(--ease-out) 2; }
+@keyframes pulse { from { transform: scale(0.9); opacity: 0.8; } to { transform: scale(1.6); opacity: 0; } }
 .map-tools { position: absolute; top: 12px; right: 12px; display: flex; flex-direction: column; gap: 6px; }
 .hint { position: absolute; left: 12px; right: 12px; bottom: 12px; display: flex; flex-wrap: wrap; align-items: center; gap: 10px; font-size: 12px; color: var(--muted); pointer-events: none; }
 .hint .chip { pointer-events: auto; }
@@ -101,7 +110,7 @@ kbd { border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 4p
 .extract { margin: 0 0 14px; line-height: 1.6; color: #c9cbe0; font-size: 14.5px; }
 .row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
 .tabs { display: flex; margin: 18px 0 14px; padding: 4px; gap: 4px; background: var(--surface-2); border-radius: 12px; }
-.tab { flex: 1; padding: 8px; border: 0; border-radius: 9px; background: none; color: var(--muted); font-size: 13px; font-weight: 600; }
+.tab { flex: 1; padding: 8px; border: 0; border-radius: 9px; background: none; color: var(--muted); font-size: 13px; font-weight: 600; transition: transform 160ms var(--ease-out), background-color 150ms ease, color 150ms ease; }
 .tab.active { background: rgba(124, 108, 255, 0.25); color: var(--text); }
 .ai-box { display: flex; flex-direction: column; gap: 12px; align-items: flex-start; }
 .ai-text { margin: 0; padding: 14px; width: 100%; border: 1px solid rgba(124, 108, 255, 0.35); border-radius: 12px; background: rgba(124, 108, 255, 0.08); line-height: 1.6; white-space: pre-wrap; font-size: 14px; }
@@ -114,12 +123,16 @@ kbd { border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 4p
 .trail small { color: var(--muted); line-height: 1.45; }
 .q { width: 100%; margin: 0; padding: 0 0 6px; border: 0; }
 .q legend { padding: 0; margin-bottom: 8px; line-height: 1.5; }
-.opt { display: block; width: 100%; margin: 6px 0; padding: 9px 12px; text-align: left; border: 1px solid var(--line); border-radius: 10px; background: var(--surface-2); }
+.opt { display: block; width: 100%; margin: 6px 0; padding: 9px 12px; text-align: left; border: 1px solid var(--line); border-radius: 10px; background: var(--surface-2); transition: transform 160ms var(--ease-out), background-color 150ms ease, border-color 150ms ease; }
 .opt:hover:not(:disabled) { border-color: var(--accent); }
 .opt:disabled { opacity: 1; }
 .opt.right { border-color: var(--good); background: rgba(61, 220, 151, 0.14); }
 .opt.wrong { border-color: var(--bad); background: rgba(255, 107, 129, 0.14); }
 .score { margin: 0; font-weight: 700; }
+
+/* Content that arrives after a wait (Muse answers, errors) settles in; --i staggers lists by 40ms. */
+.enter { transition: opacity 200ms var(--ease-out), transform 200ms var(--ease-out); transition-delay: calc(var(--i, 0) * 40ms); }
+@starting-style { .enter { opacity: 0; transform: translateY(4px); } }
 
 @media (max-width: 900px) {
   .app { height: auto; min-height: 100%; }
@@ -129,6 +142,12 @@ kbd { border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 4p
   .map { height: 60vh; }
   .panel { overflow: visible; }
 }
+/* Reduced motion: keep colour and opacity cues, drop movement. (The map itself is solved instantly in Graph.jsx.) */
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after { transition: none !important; animation: none !important; }
+  .spinner { border-top-color: var(--line); background: var(--accent); animation: breathe 1.2s ease-in-out infinite alternate; }
+  @keyframes breathe { from { opacity: 0.3; } to { opacity: 1; } }
+  .edge.lit, .graph .node circle.ring { animation: none; }
+  @keyframes node-in { from { opacity: 0; } }
+  .primary:active:not(:disabled), .chip:active, .icon:active, .opt:active:not(:disabled), .tab:active { transform: none; }
+  @starting-style { .enter { transform: none; } }
 }
