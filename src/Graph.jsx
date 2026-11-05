@@ -153,6 +153,9 @@ function useForceLayout(nodes, edges, parentOf, calmTarget) {
         s.vy += Math.cos(now / 1900 + s.seed * 1.7) * 0.018 * drift * k;
       }
       s.vx *= damp; s.vy *= damp;
+      // Speed cap: a slow first frame (k up to 3) on stacked new nodes used to fling them off-screen.
+      const sp = Math.hypot(s.vx, s.vy);
+      if (sp > 24) { s.vx *= 24 / sp; s.vy *= 24 / sp; }
       s.x += s.vx * k; s.y += s.vy * k;
     }
     alpha.current = Math.max(a * 0.97 ** k, ALPHA_MIN);
@@ -227,7 +230,8 @@ function useForceLayout(nodes, edges, parentOf, calmTarget) {
   return { pos: m, kick, paint, reduce, refNode, refEdge, els };
 }
 
-export default function Graph({ nodes, edges, selected, onSelect, onExpand }) {
+export default function Graph({ nodes, edges, selected, onSelect, onExpand, path }) {
+  const onPath = path || new Set(); // titles on Muse's learning path, drawn as the crimson trail
   const svgRef = React.useRef(null);
   const [hover, setHover] = React.useState(null);
   const calm = React.useRef(1);
@@ -321,24 +325,13 @@ export default function Graph({ nodes, edges, selected, onSelect, onExpand }) {
         aria-label="Knowledge map. Tab to a topic, Enter to read it, E to expand it. Drag topics to rearrange."
         {...handlers}
       >
-        <defs>
-          <radialGradient id="g-center" cx="35%" cy="35%">
-            <stop offset="0%" stopColor="#a7e5d3" />
-            <stop offset="55%" stopColor="#c8b8e0" />
-            <stop offset="100%" stopColor="#a8c8e8" />
-          </radialGradient>
-          {/* Static gradient halo instead of an SVG blur filter: no per-frame re-rasterising. */}
-          <radialGradient id="g-halo">
-            <stop offset="35%" stopColor="#c8b8e0" stopOpacity="0.4" />
-            <stop offset="100%" stopColor="#c8b8e0" stopOpacity="0" />
-          </radialGradient>
-        </defs>
         {edges.map((e) => {
           const a = pos.get(e.from);
           const b = pos.get(e.to);
           if (!a || !b) return null;
           const lit = focus && (e.from === focus || e.to === focus);
-          return <line key={e.from + '\u0000' + e.to} ref={refEdge(e)} x1={a.x} y1={a.y} x2={b.x} y2={b.y} className={'edge d' + Math.min(depth(e.to), 3) + (lit ? ' lit' : '')} />;
+          const trail = onPath.has(e.to) && (onPath.has(e.from) || nodes.find((n) => n.id === e.from)?.kind === 'center');
+          return <line key={e.from + '\u0000' + e.to} ref={refEdge(e)} x1={a.x} y1={a.y} x2={b.x} y2={b.y} className={'edge d' + Math.min(depth(e.to), 3) + (lit ? ' lit' : '') + (trail ? ' trail' : '')} />;
         })}
         {nodes.map((n) => {
           const s = pos.get(n.id);
@@ -353,7 +346,7 @@ export default function Graph({ nodes, edges, selected, onSelect, onExpand }) {
           const label = n.id.length > 24 ? n.id.slice(0, 23) + '…' : n.id;
           const near = hover === n.id || selected === n.id || neighbours.has(n.id);
           const cls = 'node d' + dep + (center ? ' center' : '') + (selected === n.id ? ' selected' : '')
-            + (hover === n.id ? ' hover' : '') + (near ? ' near' : '') + (s.held ? ' held' : '');
+            + (hover === n.id ? ' hover' : '') + (near ? ' near' : '') + (s.held ? ' held' : '') + (onPath.has(n.id) ? ' on-path' : '');
           return (
             <g
               key={n.id}
@@ -378,7 +371,6 @@ export default function Graph({ nodes, edges, selected, onSelect, onExpand }) {
             >
               <g className="node-body" style={{ animationDelay: `${s.delay}ms` }}>
                 <circle r={r + 10} className="hit" />
-                {(center || selected === n.id) && <circle r={r * 2.2} className="halo" />}
                 {selected === n.id && <circle r={r + 8} className="ring" />}
                 <circle r={r} />
                 <text
@@ -394,9 +386,15 @@ export default function Graph({ nodes, edges, selected, onSelect, onExpand }) {
         })}
       </svg>
       <div className="map-tools" aria-label="Map controls">
-        <button className="icon" onClick={() => zoom(1 / 1.25)} aria-label="Zoom in">+</button>
-        <button className="icon" onClick={() => zoom(1.25)} aria-label="Zoom out">−</button>
-        <button className="icon" onClick={reset} aria-label="Reset view">⟲</button>
+        <button className="icon" onClick={() => zoom(1 / 1.25)} aria-label="Zoom in" title="Zoom in">
+          <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><path d="M8 3v10M3 8h10" /></svg>
+        </button>
+        <button className="icon" onClick={() => zoom(1.25)} aria-label="Zoom out" title="Zoom out">
+          <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><path d="M3 8h10" /></svg>
+        </button>
+        <button className="icon" onClick={reset} aria-label="Reset view" title="Reset view">
+          <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 8a5 5 0 1 0 1.5-3.5M3 2.5V5h2.5" /></svg>
+        </button>
         <button
           className="icon"
           aria-label="Shake layout"
@@ -405,7 +403,9 @@ export default function Graph({ nodes, edges, selected, onSelect, onExpand }) {
             if (!reduce) for (const s of pos.values()) if (!s.fixed) { s.vx += (Math.random() - 0.5) * 24; s.vy += (Math.random() - 0.5) * 24; }
             kick(1);
           }}
-        >✺</button>
+        >
+          <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="8" cy="8" r="1.5" /><circle cx="3" cy="4" r="1" /><circle cx="13" cy="5" r="1" /><circle cx="4" cy="12.5" r="1" /><circle cx="12.5" cy="12" r="1" /></svg>
+        </button>
       </div>
     </div>
   );

@@ -19,6 +19,12 @@ export async function fetchLinks(title, limit = 24) {
   return r.json();
 }
 
+export async function fetchToday(date) {
+  const r = await fetch(`/api/wiki/today?date=${date}`);
+  if (!r.ok) throw new Error('today failed');
+  return r.json();
+}
+
 export async function aiSummarize(title, extract, level) {
   const r = await fetch('/api/ai/summarize', {
     method: 'POST',

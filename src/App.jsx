@@ -20,7 +20,7 @@ function Source({ r }) {
   const meta = r.source?.startsWith('meta:');
   return (
     <p className={'source' + (meta ? ' meta' : '')}>
-      {meta ? `Meta ${r.source.slice(5)}` : 'Wikipedia fallback'}
+      {meta ? `Written by Meta ${r.source.slice(5)}` : 'From the Wikipedia text (Muse unavailable)'}
       {r.cached ? ' · cached' : ''}
       {r.note ? ` · ${r.note}` : ''}
     </p>
@@ -45,9 +45,13 @@ export default function App() {
   const [copied, setCopied] = React.useState(false);
   const [muse, setMuse] = React.useState(null);
   const [home, setHome] = React.useState(() => !topicFromUrl()); // no topic in the URL = front page
+  const [trail, setTrail] = React.useState([]); // topics opened this session, newest first
+  const [menu, setMenu] = React.useState(false); // phone: the sidebar as a sheet
+  const visit = (t) => setTrail((v) => [t, ...v.filter((x) => x !== t)].slice(0, 8));
   const { nodes, edges, loading, explore, expand } = useWikiGraph();
   const linkTitles = React.useMemo(() => nodes.filter((n) => n.kind === 'link').map((n) => n.id), [nodes]);
   const centerId = nodes.find((n) => n.kind === 'center')?.id;
+  const pathSet = React.useMemo(() => new Set(path?.steps?.map((st) => st.title) || []), [path]);
   const shown = React.useRef(null); // topic we put in the URL, so our own hash writes are ignored
 
   async function doSearch(e, text = q) {
@@ -60,7 +64,7 @@ export default function App() {
       if (r[0]) openArticle(r[0].title);
       else setError(`No Wikipedia articles found for “${text.trim()}”. Try another spelling.`);
     } catch {
-      setError('Search failed — is the API running? Start it with `npm run dev`.');
+      setError('Search failed. Is the API running? Start it with npm run dev.');
     }
   }
 
@@ -72,6 +76,8 @@ export default function App() {
     shown.current = title;
     topicToUrl(title);
     resetAi();
+    visit(title);
+    setMenu(false);
     try {
       const summary = await explore(title);
       setPanel(summary);
@@ -107,7 +113,7 @@ export default function App() {
     try {
       setAi(await aiSummarize(panel.title, panel.extract || '', level));
     } catch {
-      setError('AI summary failed — check the API and try again.');
+      setError('The summary failed. Check the API and try again.');
     } finally {
       setAiLoading(false);
     }
@@ -120,7 +126,7 @@ export default function App() {
       const links = linkTitles.length ? linkTitles : (await fetchLinks(panel.title)).links;
       setPath(await aiPath(panel.title, links));
     } catch {
-      setError('Learning path failed — check the API and try again.');
+      setError('The learning path failed. Check the API and try again.');
     } finally {
       setPathLoading(false);
     }
@@ -133,7 +139,7 @@ export default function App() {
       setQuiz(await aiQuiz(panel.title, panel.extract || ''));
       setAnswers({});
     } catch {
-      setError('Quiz failed — Muse Spark gave an unusable reply. Try again.');
+      setError('The quiz failed: Muse Spark gave an unusable reply. Try again.');
     } finally {
       setQuizLoading(false);
     }
@@ -186,63 +192,103 @@ export default function App() {
     );
   }
 
+  const isCenter = panel && panel.title === centerId;
+  const short = (t) => (t.length > 22 ? t.slice(0, 21) + '…' : t);
+  const subline = panel && [panel.description, isCenter ? `${linkTitles.length} links in its opening paragraph` : centerId && `linked from ${centerId}`].filter(Boolean).join(' · ');
+
   return (
-    <div className="app">
-      <header className="topbar">
-        <a className="brand" href="#/" aria-label="FunWiki home">
-          <span className="logo" aria-hidden="true" />
-          FunWiki
-        </a>
-        <form onSubmit={doSearch} className="search" role="search">
-          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search any topic…" aria-label="Search Wikipedia" />
-          <button type="submit" className="primary">Explore</button>
-        </form>
-        <div className={'muse' + (muse?.keyConfigured ? ' on' : '')} title={muse ? `${muse.model} via ${muse.base}` : 'Checking Meta AI…'}>
-          <span className="dot" aria-hidden="true" />
-          {muse ? (muse.keyConfigured ? `Meta ${muse.model}` : 'Meta AI offline') : 'Meta AI…'}
+    <div className="shell">
+      <header className="top">
+        <div className="brand-cell">
+          <a className="brand" href="#/" aria-label="FunWiki front page">
+            {/* The mark: one article node with two links, in the page's crimson. */}
+            <svg className="mark-icon" viewBox="0 0 24 24" width="24" height="24" aria-hidden="true">
+              <path d="M12 12 4.5 6.5M12 12l7 5" stroke="#efefef" strokeWidth="1.5" />
+              <circle cx="4.5" cy="6.5" r="2.5" fill="#efefef" /><circle cx="19" cy="17" r="2.5" fill="#efefef" />
+              <circle cx="12" cy="12" r="5" fill="#b11226" />
+            </svg>
+            FunWiki
+          </a>
         </div>
+        <form onSubmit={doSearch} className="search" role="search">
+          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search Wikipedia" aria-label="Search Wikipedia" />
+          <button type="submit" className="btn-quiet">Map it</button>
+        </form>
+        <div className="status-cell" title={muse ? `${muse.model} via ${muse.base}` : undefined}>
+          <span>Muse Spark</span>
+          <span className={'pill ' + (muse?.keyConfigured ? 'pos' : 'off')}>{muse ? (muse.keyConfigured ? 'Connected' : 'Offline') : 'Checking'}</span>
+        </div>
+        <button className="menu-btn" aria-expanded={menu} aria-controls="side" onClick={() => setMenu((m) => !m)}>{menu ? 'Close' : 'Menu'}</button>
       </header>
 
-      {!!results.length && (
-        <nav className="chips" aria-label="Search results">
-          {results.map((r) => (
-            <button key={r.title} onClick={() => openArticle(r.title)} className={'chip' + (centerId === r.title ? ' active' : '')}>
-              {r.title}
-            </button>
-          ))}
-        </nav>
-      )}
+      <nav id="side" className={'side' + (menu ? ' open' : '')} aria-label="Topics">
+        <a className="nav-item" href="#/">Front page</a>
+        {!!trail.length && (
+          <>
+            <p className="group">Your trail</p>
+            {trail.map((t) => (
+              <button key={t} className={'nav-item' + (t === centerId ? ' active' : '')} aria-current={t === centerId ? 'page' : undefined} onClick={() => openArticle(t)}>{t}</button>
+            ))}
+          </>
+        )}
+        {!!results.length && (
+          <>
+            <p className="group">Search results</p>
+            {results.filter((r) => !trail.includes(r.title)).map((r) => (
+              <button key={r.title} className="nav-item" onClick={() => openArticle(r.title)}>{r.title}</button>
+            ))}
+          </>
+        )}
+      </nav>
 
-      {error && <div className="error enter" role="alert">{error}<button className="ghost" onClick={() => setError(null)} aria-label="Dismiss">×</button></div>}
+      {/* Grid: 1440 - 220 sidebar - 1 rule = 1219 canvas; - 2 x 29 padding = 1161 = 753 map + 24 gap + 384 rail. */}
+      <main className="canvas">
+        <div className="title-row">
+          <div>
+            <p className="crumbs">
+              <a href="#/">Front page</a>
+              {panel && !isCenter && centerId && <> / <button className="crumb" onClick={() => onNodeClick(centerId)}>{centerId}</button></>}
+              {' /'}
+            </p>
+            <h1>{panel?.title || selected || 'Loading'}</h1>
+            {subline && <p className="finding">{subline}</p>}
+            {error && <p className="notice" role="alert">{error} <button className="btn-text" onClick={() => setError(null)}>Dismiss</button></p>}
+          </div>
+          <div className="title-actions">
+            {selected && selected !== centerId && <button className="btn-text" onClick={() => expand(selected)}>Grow its branch</button>}
+            {panel?.url && <a className="btn-text" href={panel.url} target="_blank" rel="noreferrer">Read on Wikipedia</a>}
+            <button className="btn-text" onClick={copyLink}>{copied ? 'Link copied' : 'Copy link'}</button>
+            {panel && !isCenter && <button className="btn-primary" onClick={() => openArticle(panel.title)}>Map “{short(panel.title)}”</button>}
+          </div>
+        </div>
 
-      <main className="layout">
-        <section className="map" aria-busy={loading}>
-          {nodes.length ? (
-            <Graph key={centerId} nodes={nodes} edges={edges} selected={selected} onSelect={onNodeClick} onExpand={expand} />
-          ) : (
-            !loading && <div className="status">Search a topic to grow your knowledge map.</div>
-          )}
-          {loading && <div className="status overlay"><span className="spinner" aria-hidden="true" />Building map…</div>}
-          <div className="hint">
-            Click to read · double-click or <kbd>E</kbd> to grow · drag topics to move them · drag space to pan · scroll to zoom
-            {selected && <button className="chip" onClick={() => expand(selected)}>Expand “{selected}”</button>}
+        <section className="map-card" aria-label={`Map of ${centerId || 'the topic'}`} aria-busy={loading}>
+          <div className="card-head">
+            <h2>Links from the opening paragraph</h2>
+            <p className="legend">
+              <span><i className="sw sw-center" />This article</span>
+              <span><i className="sw sw-sel" />Selected</span>
+              {pathSet.size > 0 && <span><i className="sw sw-path" />Muse’s path</span>}
+            </p>
+          </div>
+          <div className="map-body">
+            {nodes.length ? (
+              <Graph key={centerId} nodes={nodes} edges={edges} selected={selected} onSelect={onNodeClick} onExpand={expand} path={pathSet} />
+            ) : (
+              !loading && <p className="empty">Search for a topic to map it.</p>
+            )}
+            {loading && <p className="loading-note">Mapping {selected || 'the article'}…</p>}
           </div>
         </section>
 
-        <aside className="panel" aria-live="polite">
+        <aside className="rail" aria-live="polite">
           {!panel ? (
-            <div className="status">Pick a topic to start.</div>
+            <div className="skeleton" aria-label="Loading the article"><span className="bar w60" /><span className="bar" /><span className="bar" /><span className="bar w80" /></div>
           ) : (
             <>
-              {panel.thumbnail && <img className="hero" src={panel.thumbnail} alt="" />}
-              <div className="panel-body">
-                <h2>{panel.title}</h2>
-                <p className="extract">{panel.extract?.slice(0, 600)}</p>
-                <div className="row">
-                  {panel.url && <a className="chip" href={panel.url} target="_blank" rel="noreferrer">Full article ↗</a>}
-                  <button onClick={copyLink} className="chip">{copied ? 'Copied!' : 'Copy share link'}</button>
-                  {panel.title !== centerId && <button onClick={() => openArticle(panel.title)} className="chip">Center map here</button>}
-                </div>
+              {panel.thumbnail && <img className="thumb" src={panel.thumbnail} alt={`Lead image of the article ${panel.title}`} />}
+              <div className="rail-body">
+                <p className="extract">{panel.extract?.slice(0, 520)}{panel.extract?.length > 520 ? '…' : ''}</p>
 
                 <div className="tabs" role="tablist">
                   {TABS.map((t) => (
@@ -253,26 +299,28 @@ export default function App() {
                 {tab === 'summary' && (
                   <div className="ai-box">
                     <div className="row">
-                      {LEVELS.map((l) => (
-                        <button key={l.id} onClick={() => { setLevel(l.id); setAi(null); }} className={'chip' + (level === l.id ? ' active' : '')}>{l.label}</button>
-                      ))}
-                      <button onClick={runAi} disabled={aiLoading} className="primary">{aiLoading ? 'Thinking…' : 'Ask Muse'}</button>
+                      <div className="seg" role="group" aria-label="Depth">
+                        {LEVELS.map((l) => (
+                          <button key={l.id} aria-pressed={level === l.id} onClick={() => { setLevel(l.id); setAi(null); }} className={'seg-btn' + (level === l.id ? ' on' : '')}>{l.label}</button>
+                        ))}
+                      </div>
+                      <button onClick={runAi} disabled={aiLoading} className="btn-primary">{aiLoading ? 'Reading…' : 'Ask Muse'}</button>
                     </div>
-                    {ai && <p className="ai-text enter">{ai.text}</p>}
+                    {ai && <p className="ai-text">{ai.text}</p>}
                     <Source r={ai} />
                   </div>
                 )}
 
                 {tab === 'path' && (
                   <div className="ai-box">
-                    <button onClick={runPath} disabled={pathLoading} className="primary">{pathLoading ? 'Planning…' : path ? 'Rebuild path' : 'Build my learning path'}</button>
+                    <button onClick={runPath} disabled={pathLoading} className="btn-primary">{pathLoading ? 'Planning…' : path ? 'Plan again' : 'Plan a path'}</button>
                     {path && (
-                      <ol className="trail">
-                        <li className="enter"><strong>{path.title}</strong><small>Start here</small></li>
-                        {path.steps.map((s, i) => (
-                          <li key={i} className="enter" style={{ '--i': i + 1 }}>
-                            <button className="linklike" onClick={() => openArticle(s.title)}>{s.title}</button>
-                            <small>{s.why}</small>
+                      <ol className="steps">
+                        <li><strong>{path.title}</strong><small>You are here</small></li>
+                        {path.steps.map((st, i) => (
+                          <li key={i}>
+                            <button className="linklike" onClick={() => onNodeClick(st.title)}>{st.title}</button>
+                            <small>{st.why}</small>
                           </li>
                         ))}
                       </ol>
@@ -283,23 +331,21 @@ export default function App() {
 
                 {tab === 'quiz' && (
                   <div className="ai-box">
-                    <button onClick={runQuiz} disabled={quizLoading} className="primary">{quizLoading ? 'Writing…' : quiz ? 'New quiz' : 'Test me!'}</button>
-                    {quiz?.needsKey && <p className="ai-text enter">{quiz.note}</p>}
+                    <button onClick={runQuiz} disabled={quizLoading} className="btn-primary">{quizLoading ? 'Writing…' : quiz ? 'New questions' : 'Test me'}</button>
+                    {quiz?.needsKey && <p className="ai-text">{quiz.note}</p>}
                     {quiz?.questions?.map((qq, i) => (
-                      <fieldset key={i} className="q enter" style={{ '--i': i }}>
-                        <legend><strong>Q{i + 1}.</strong> {qq.q}</legend>
+                      <fieldset key={i} className="q">
+                        <legend>{qq.q}</legend>
                         {qq.options.map((opt, j) => {
                           const done = answers[i] !== undefined;
                           const state = !done ? '' : j === qq.answer ? ' right' : answers[i] === j ? ' wrong' : '';
                           return (
-                            <button key={j} disabled={done} onClick={() => setAnswers((a) => ({ ...a, [i]: j }))} className={'opt' + state}>
-                              {opt}
-                            </button>
+                            <button key={j} disabled={done} onClick={() => setAnswers((a) => ({ ...a, [i]: j }))} className={'opt' + state}>{opt}</button>
                           );
                         })}
                       </fieldset>
                     ))}
-                    {!!answered && !!quiz?.questions?.length && <p className="score">Score: {score}/{quiz.questions.length}</p>}
+                    {!!answered && !!quiz?.questions?.length && <p className="score">{score} of {quiz.questions.length} right</p>}
                     {!quiz?.needsKey && <Source r={quiz} />}
                   </div>
                 )}
