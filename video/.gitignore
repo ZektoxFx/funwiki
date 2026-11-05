@@ -1,0 +1,5 @@
+node_modules/
+out/
+capture/raw/
+public/footage/*.webm
+public/footage/*.mp4

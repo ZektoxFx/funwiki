@@ -1,0 +1,51 @@
+{
+  "voice": "en-US-AndrewNeural",
+  "rate": "-2%",
+  "scenes": {
+    "title": [
+      { "at": 1.0, "text": "This is FunWiki. Wikipedia, as a map." }
+    ],
+    "problem": [
+      { "at": 0.6, "text": "Wikipedia has nearly seven million English articles, and each one is a wall of text with hundreds of blue links." },
+      { "at": 8.2, "text": "You can read it top to bottom, or you can get lost. We wanted to see how an idea connects before diving in." }
+    ],
+    "home": [
+      { "at": 0.6, "text": "FunWiki opens on a front page built from today's Wikipedia: the picture of the day, the most-read articles, and a search box." },
+      { "at": 13.6, "text": "Type any topic and its map appears straight away: the links from its opening paragraph, in the order the article mentions them." }
+    ],
+    "map": [
+      { "at": 0.2, "text": "Search for Black hole, and the article opens as a living map." },
+      { "at": 3.9, "text": "The red node is the article. Every other node is a topic its opening paragraph links to." },
+      { "at": 9.4, "text": "Hover over one, and its connections light up." },
+      { "at": 15.8, "text": "Drag it, and the map moves with you, then settles." },
+      { "at": 25.8, "text": "Double-click Gravity, and a new branch grows out of it, with Gravity's own links." },
+      { "at": 33.2, "text": "Click any topic to read about it on the right, then map it to make it the new centre." }
+    ],
+    "summary": [
+      { "at": 0.3, "text": "Your guide is Meta's Muse Spark." },
+      { "at": 2.6, "text": "Ask Muse for a simple summary, and it rewrites the article so a ten-year-old could follow it." },
+      { "at": 11.0, "text": "Every answer is grounded in Wikipedia's own text." },
+      { "at": 16.8, "text": "Switch to five bullets for the key facts instead." }
+    ],
+    "path": [
+      { "at": 0.3, "text": "Not sure where to start? Plan a path." },
+      { "at": 7.4, "text": "Muse picks topics from the map and puts them in order, easiest first, then draws the path on the map as a red trail." },
+      { "at": 17.4, "text": "Click a step to jump to it." }
+    ],
+    "quiz": [
+      { "at": 0.3, "text": "Then test yourself." },
+      { "at": 4.6, "text": "Muse writes questions from the article, and the options are shuffled, so position gives nothing away." },
+      { "at": 11.6, "text": "You see right and wrong straight away." }
+    ],
+    "how": [
+      { "at": 0.6, "text": "Under the hood: a React map that runs its own physics," },
+      { "at": 4.6, "text": "serverless functions on Vercel that cache Wikipedia's free APIs," },
+      { "at": 9.0, "text": "and one model, Muse Spark, for every AI feature." },
+      { "at": 12.6, "text": "If Muse is unavailable, FunWiki falls back to Wikipedia's own text, so the map always works." }
+    ],
+    "close": [
+      { "at": 0.8, "text": "FunWiki. Read less, explore more." },
+      { "at": 4.0, "text": "Try it at funwiki dot vercel dot app." }
+    ]
+  }
+}
