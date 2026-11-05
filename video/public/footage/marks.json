@@ -1,0 +1,52 @@
+{
+  "wikipedia": {
+    "ready": 6.37,
+    "end": 26.15
+  },
+  "home": {
+    "ready": 3.1,
+    "lede": 11.88,
+    "today": 19.89,
+    "try": 23.72,
+    "tryDone": 26.47,
+    "how": 35.97,
+    "gallery": 45.91,
+    "end": 49.92
+  },
+  "map": {
+    "ready": 2.66,
+    "submit": 7.39,
+    "mapShown": 7.99,
+    "hover": 12.51,
+    "drag": 22.18,
+    "grow": 34.01,
+    "grown": 36.91,
+    "select": 41.91,
+    "selected": 49.84,
+    "end": 51.34
+  },
+  "summary": {
+    "ready": 1.44,
+    "ask1": 7.55,
+    "answer1": 17.03,
+    "ask2": 28.63,
+    "answer2": 34.72,
+    "end": 41.85
+  },
+  "path": {
+    "ready": 1.64,
+    "ask": 8.6,
+    "answer": 16.31,
+    "step": 26.92,
+    "end": 30.92
+  },
+  "quiz": {
+    "ready": 1.6,
+    "ask": 9.99,
+    "answer": 17.41,
+    "q1": 23.25,
+    "q2": 28.53,
+    "q3": 33.63,
+    "end": 38.86
+  }
+}

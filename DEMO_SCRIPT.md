@@ -1,5 +1,8 @@
 # FunWiki — 2-Minute Demo Script
 
+> The recorded demo is now built in `video/` (see the README). This script is the
+> older live-demo outline; the UI it describes predates the taste-skill redesign.
+
 Total: ~120 seconds. Record on https://funwiki.vercel.app at a wide window.
 Before recording, check that the header pill is green ("Meta muse-spark-1.3"),
 and run Summary, Path and Quiz on "Black hole" once so they're cached and instant.

@@ -6,6 +6,28 @@ summaries, guided learning paths, and quizzes.
 
 Built for the Meta AI Developer Hackathon.
 
+**Demo video (3:00):** https://drive.google.com/file/d/10q5bn-928rzbY0GoCRdsGr6_YKbeciru/view?usp=sharing
+
+## Demo video
+
+`video/` is a [Remotion](https://www.remotion.dev) project that builds the demo
+from real footage of the deployed app, with narration and subtitles.
+
+```bash
+cd video
+npm install
+npx playwright install chromium
+pip install edge-tts==7.3.1
+npm run capture   # record the app with Playwright (public/footage/, git-ignored)
+npm run voice     # narrate the cues in src/script.json (public/voice/)
+npm run render    # out/master.mp4
+npm run studio    # preview and scrub in the browser
+```
+
+Narration lives in `video/src/script.json`: each cue has an `at` (seconds into
+its scene) and its text. Scene cuts and zooms are in `video/src/Demo.tsx`
+(`CLIPS`), timed against `public/footage/marks.json`, which `capture` writes.
+
 ## Design
 
 The UI follows the dark variant of [design-md/elevenlabs/DESIGN.md](design-md/elevenlabs/DESIGN.md):
